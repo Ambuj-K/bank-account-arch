@@ -51,7 +51,7 @@ contract Vault is IVault{
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Sets the controller address for usage
-    function setControllerAddress(address _controller, uint256 deadline, bytes memory signature) public onlyClient {
+    function setControllerAddress(address _controller) public onlyClient {
 
         controller = _controller; 
     }

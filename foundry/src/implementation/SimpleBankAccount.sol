@@ -72,7 +72,7 @@ contract SimpleBankAccount is ISimpleBankAccount {
         // Set contract owner
         _owner = __owner;
 
-        if (_erc20_contract_addresses.len==_erc20_contract_names.len) {
+        if (_erc20_contract_addresses.length==_erc20_contract_names.length) {
             revert Error_Token_Name_Addr_Count_Mismatch();    
         }
 
@@ -120,14 +120,14 @@ contract SimpleBankAccount is ISimpleBankAccount {
 
     /// @dev Sets the controller address for usage
     /// Also, the controller constructor makes it not feasible to be inherited
-    function setControllerAddress(address _controllerAddress, uint256 deadline, bytes memory signature) public onlyOwner {
+    function setControllerAddress(address _controllerAddress) public onlyOwner {
 
         controllerAddress = _controllerAddress;
 
         icontroller = IController(controllerAddress); }
 
 
-    function setInterestPercent(uint256 _interestRate, uint256 deadline, bytes memory signature) public onlyOwner interestNotSet  {
+    function setInterestPercent(uint256 _interestRate) public onlyOwner interestNotSet  {
         interestSet = true;
         interestPercent = _interestRate; }
 
@@ -198,7 +198,7 @@ contract SimpleBankAccount is ISimpleBankAccount {
 
         _rotateInterest(token_addr);
 
-        if(!icontroller.checkValidDeposit(address(this), amount, IERC20(token_addr).balanceOf(address(this)), interestPercent)){ revert Error_depositToken_Not_Enough_Vault_Interest_For_Deposit(); }
+        if(!icontroller.checkValidDeposit(amount, address(this), IERC20(token_addr).balanceOf(address(this)), interestPercent, token_addr)){ revert Error_depositToken_Not_Enough_Vault_Interest_For_Deposit(); }
         
         _depositLogic(amount, token_addr);
         

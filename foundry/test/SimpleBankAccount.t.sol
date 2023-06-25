@@ -30,28 +30,35 @@ contract SimpleBankAccountTest is DSTest {
     ERC20 public token1;
     Vault public VaultObj;
     Controller public ControllerObj;
+    address[] tokenAddressArray;
+    string[] tokenNameArray;
 
     function setUp() public {
-        token =new ERC20("token",
-        "tk");
-        token1 =new ERC20("token1",
-        "tk1");
-        token.mint(address(this), 1000000 * 1e18); // deploy and mint to the test contract i.e. "owner wallet"
-        token1.mint(address(this), 1000000 * 1e18); 
-        SimpleBankAccountObj = new SimpleBankAccount();
-        SimpleBankAccountObj.setTimestamp(365 days );
-        SimpleBankAccountObj.setInterestPercent(10 );
+        token =new ERC20("US Dollar",
+        "USD");
+        token1 =new ERC20("Euro",
+        "EUR");
+        tokenAddressArray = [address(token), address(token1)];
+        tokenNameArray = ["USD", "Eur"];
+        // token._mint(address(this), 1000000 * 1e18); 
+        // deploy and mint to the test contract i.e. "owner wallet"
+        // token1._mint(address(this), 1000000 * 1e18); 
+        SimpleBankAccountObj = new SimpleBankAccount(tokenAddressArray,tokenNameArray, address(this));
+        SimpleBankAccountObj.setInterestPercent(10);
 
-        VaultObj = new Vault(address(token), address(this));
+        VaultObj = new Vault(address(this));
 
         ControllerObj = new Controller(address(VaultObj),address(this));
+        SimpleBankAccountObj.setControllerAddress(address(ControllerObj) );
         // add rewardtokens by the owner wallet i.e. test contract
-        token.approve(address(this), address(VaultObj), 500 ether);
-        VaultObj.setControllerAddress(address(ControllerObj) );
-        VaultObj.depositToVault(500 ether);
-        VaultObj.getAvailableTokens();
+        token.approve(address(VaultObj), 500 ether);
+        VaultObj.setControllerAddress(address(ControllerObj));
+        VaultObj.depositToVault(500 ether, address(token));
+        VaultObj.getAvailableTokens(address(token));
+        VaultObj.depositToVault(500 ether, address(token1));
+        VaultObj.getAvailableTokens(address(token1));
         // register product on controller
-        ControllerObj.registerProduct(address(SimpleBankAccountObj), 500 ether, IController.productTypes.SIMPLE_ACCOUNT);
+        ControllerObj.registerProduct(address(SimpleBankAccountObj), 500 ether, IController.productTypes.SIMPLE_ACCOUNT, tokenAddressArray);
     }
 
     function testCreateDepositWithdrawClaim() public {
@@ -61,9 +68,10 @@ contract SimpleBankAccountTest is DSTest {
         emit log_uint(token.balanceOf(address(addr)));
         cheats.startPrank(address(addr));
         // approval from 1st acc for contract transfer
-        token.approve(address(addr), address(SimpleBankAccountObj), 30 ether);
+        token.approve(address(SimpleBankAccountObj), 30 ether);
         // addr contributes tokens
-        SimpleBankAccountObj.depositTokens(30 ether);
+        SimpleBankAccountObj.depositTokens(30 ether, address(token));
+        SimpleBankAccountObj.depositTokens(30 ether, address(token1));
         cheats.stopPrank();
         // use 2nd address to contribute
         address addr1 = 0x1234567890123456789012345678901234567892;
@@ -71,9 +79,10 @@ contract SimpleBankAccountTest is DSTest {
         emit log_uint(token.balanceOf(address(addr1)));
         cheats.startPrank(address(addr1));
         // approval from 2nd acc for contract transfer
-        token.approve(address(addr1), address(SimpleBankAccountObj), 20 ether);
+        token.approve(address(SimpleBankAccountObj), 20 ether);
         // addr 1 contribute tokens
-        SimpleBankAccountObj.depositTokens(20 ether);
+        SimpleBankAccountObj.depositTokens(20 ether, address(token));
+        SimpleBankAccountObj.depositTokens(20 ether, address(token1));
         cheats.stopPrank();
         emit log_uint(token.balanceOf(address(addr1)));
         assertEq(token.balanceOf(address(addr1)), 980 ether);
@@ -83,18 +92,21 @@ contract SimpleBankAccountTest is DSTest {
         emit log_uint(token.balanceOf(address(addr2)));
         cheats.startPrank(address(addr2));
         // approval from 3rd acc for contract transfer
-        token.approve(address(addr2), address(SimpleBankAccountObj), 20 ether);
+        token.approve(address(SimpleBankAccountObj), 20 ether);
         // addr 2 contribute
-        SimpleBankAccountObj.depositTokens(20 ether);
+        SimpleBankAccountObj.depositTokens(20 ether, address(token));
+        SimpleBankAccountObj.depositTokens(20 ether, address(token1));
         cheats.stopPrank();
         assertEq(token.balanceOf(address(addr2)), 980 ether);
         cheats.startPrank(address(addr1));
         cheats.warp(365 days+1 minutes);
         // withdraw 10 ether from  via addr1
-        SimpleBankAccountObj.withdrawTokens(10 ether);
+        SimpleBankAccountObj.withdrawTokens(10 ether, address(token));
+        SimpleBankAccountObj.withdrawTokens(10 ether, address(token1));
         cheats.stopPrank();
         emit log_uint(token.balanceOf(address(addr2)));
         assertEq(token.balanceOf(address(addr1)), 990 ether);
+        assertEq(token1.balanceOf(address(addr1)), 990 ether);
         // check balance to 30
         cheats.warp(92 days);
         assertEq(token.balanceOf(address(SimpleBankAccountObj)), 1030 ether);

@@ -33,6 +33,7 @@ contract Controller is IController, ReentrancyGuard{
     error Error_Staking_Adapter_Not_Set();
     error Error_Unauthorized_Signature();
     error Error_Unauthorized_Deadline_Expired();
+    error Error_Controller_Vault_Claim();
 
     modifier onlyClientOrAdapter{
         if (stakingAdapter == address(0)) { revert Error_Staking_Adapter_Not_Set();}
@@ -77,10 +78,12 @@ contract Controller is IController, ReentrancyGuard{
     // Function to claim a reward for a user
     // @param rewardRate so we dont over subscribe 
     // @modifiers onlyClient, nonReentrant
-    function claimReward(address productAddress, uint256 claimAmount, address token_addr) external onlyClientOrAdapter nonReentrant{
+    function claimReward(address productAddress, uint256 claimAmount, address token_addr) external onlyClientOrAdapter nonReentrant returns (bool){
         products[productAddress].availableReward -= claimAmount;
 
-        IVault(vaultAddress).withdrawFromVault(productAddress, claimAmount, token_addr); 
+        try IVault(vaultAddress).withdrawFromVault(productAddress, claimAmount, token_addr) { return true; }
+
+        catch (bytes memory error) { revert Error_Controller_Vault_Claim(); }
     }
 
     // Registers new product supported by the controller/vault 
@@ -122,7 +125,7 @@ contract Controller is IController, ReentrancyGuard{
     // @param Address of the new token
     // @modifiers onlyClient, nonReentrant
     function addTokenInProduct(address productAddress,address new_token) external onlyClient nonReentrant{
-        // products[productAddress].tokenList.append(new_token);
+        products[productAddress].tokenList.push(new_token);
     }
 
 }

@@ -27,7 +27,7 @@ interface IController {
     // @param claimer the user claiming the reward 
     // @param claimAmount totalTokens to be claimed from the vault 
     // @modifiers onlyAdd3, nonReentrant
-    function claimReward(address, uint256, address) external;
+    function claimReward(address, uint256, address) external returns (bool);
 
     // Registers new product supported by the controller/vault 
     // @param contractAddress so that we can add to spend list
