@@ -23,21 +23,18 @@ contract Controller is IController, ReentrancyGuard{
 
     address private vaultAddress;
     address private clientAdmin;
-    address private stakingAdapter;
 
     //uint256 private totalRewardsAllProducts;
 
     error Error_Not_Owner();
-    error Error_Not_Owner_Or_Adapter();
     error Error_Reward_Amount_Lesser_Than_Vault_Bal();
-    error Error_Staking_Adapter_Not_Set();
     error Error_Unauthorized_Signature();
     error Error_Unauthorized_Deadline_Expired();
     error Error_Controller_Vault_Claim();
+    error Error_Not_Owner_Or_Product();
 
-    modifier onlyClientOrAdapter{
-        if (stakingAdapter == address(0)) { revert Error_Staking_Adapter_Not_Set();}
-        if (msg.sender != clientAdmin && msg.sender != stakingAdapter) { revert Error_Not_Owner_Or_Adapter(); }
+    modifier onlyClientOrProduct{
+        if (msg.sender != clientAdmin && !products[msg.sender].active) { revert Error_Not_Owner_Or_Product(); }
         _; }
 
     modifier onlyClient{
@@ -60,7 +57,7 @@ contract Controller is IController, ReentrancyGuard{
     // @param address of the product being used
     // @param balance of the product being used
     // @param interest of the product being used
-    function checkValidDeposit(uint256 amount, address addr, uint256 contractBalance, uint256 interestPercentage, address token_addr) external view onlyClientOrAdapter returns (bool){
+    function checkValidDeposit(uint256 amount, address addr, uint256 contractBalance, uint256 interestPercentage, address token_addr) external onlyClientOrProduct returns (bool){
         // check vault reward amount is greater than set reward amount
         if (products[addr].productType == (productTypes.SIMPLE_ACCOUNT)) {
         // at any point of time given deposit withdraw patterns the vault must have the APY of the contract balance
@@ -71,14 +68,14 @@ contract Controller is IController, ReentrancyGuard{
     // Fills the vault with tokens to later use for the registered accounts
     // @param tokenAddress token being deposited into the vault 
     // @param amount of tokens being deposited into the vault as rewards
-    // @modifiers onlyClientOrAdapter, nonReentrant
-    function depositAssetToVault(address contractaddr,uint256 amount, address token_addr) external onlyClientOrAdapter nonReentrant{ 
+    // @modifiers onlyClientOrProduct, nonReentrant
+    function depositAssetToVault(address contractaddr,uint256 amount, address token_addr) external onlyClientOrProduct nonReentrant{ 
         IVault(vaultAddress).depositToVault(amount, token_addr); }
 
     // Function to claim a reward for a user
     // @param rewardRate so we dont over subscribe 
-    // @modifiers onlyClient, nonReentrant
-    function claimReward(address productAddress, uint256 claimAmount, address token_addr) external onlyClientOrAdapter nonReentrant returns (bool){
+    // @modifiers onlyClientOrProduct, nonReentrant
+    function claimReward(address productAddress, uint256 claimAmount, address token_addr) external onlyClientOrProduct nonReentrant returns (bool){
         products[productAddress].availableReward -= claimAmount;
 
         try IVault(vaultAddress).withdrawFromVault(productAddress, claimAmount, token_addr) { return true; }

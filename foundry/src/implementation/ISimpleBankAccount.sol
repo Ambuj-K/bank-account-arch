@@ -26,8 +26,6 @@ interface ISimpleBankAccount{
 
     function withdrawTokens(uint256, address) external;
 
-    function rotateInterest(address) external;
-
     function withdrawAll(address) external;
 
     // function transferAccidentallyLockedTokens(IERC20 token, uint256 amount) external;

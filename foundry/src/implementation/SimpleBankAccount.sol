@@ -72,10 +72,9 @@ contract SimpleBankAccount is ISimpleBankAccount {
         // Set contract owner
         _owner = __owner;
 
-        if (_erc20_contract_addresses.length==_erc20_contract_names.length) {
+        if (_erc20_contract_addresses.length != _erc20_contract_names.length) {
             revert Error_Token_Name_Addr_Count_Mismatch();    
         }
-
         for (uint256 i = 0; i < _erc20_contract_addresses.length; i++) {
             if (_erc20_contract_addresses[i] == address(0)){ 
                 revert Error_Address_Zero(); 
@@ -222,11 +221,6 @@ contract SimpleBankAccount is ISimpleBankAccount {
         _wps(token_addr);
 
         emit TokensWithDrawn(msg.sender, amount); }
-
-    function rotateInterest(address token_addr) public noReentrant {
-        _rotateInterest(token_addr);
-        _wps(token_addr);
-        _timeLogic(token_addr); }
 
     function withdrawAll(address token_addr)  public {
         
