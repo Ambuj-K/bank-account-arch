@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 
 // How it works. Deposit made by user is held in the contract. When user deposits more, balance is updated in contract.
 // assuming that you get a fixed reward for your time held

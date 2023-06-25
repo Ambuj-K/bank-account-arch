@@ -1,8 +1,4 @@
-// SPDX-License-Identifier: MIT
-// WARNING this contract has not been independently tested or audited
-// DO NOT use this contract with funds of real value until officially tested and audited by an independent expert or group
-
-// Staking Contract interfact 
+// SPDX-License-Identifier: GPL-3.0
 
 pragma solidity ^0.8.11;
 
