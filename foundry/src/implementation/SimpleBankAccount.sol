@@ -38,7 +38,8 @@ contract SimpleBankAccount is ISimpleBankAccount {
     mapping(address => mapping(address=> uint256)) public balances;
     // time of deposit held
     mapping(address => mapping(address=> uint256)) private depositTime;
-    mapping(address => uint256) private interestPerSecond;
+    // interest per second
+    mapping(address => mapping(address=> uint256)) private interestPerSecond;
 
     address private controllerAddress;
     IController private icontroller;
@@ -131,6 +132,14 @@ contract SimpleBankAccount is ISimpleBankAccount {
         interestPercent = _interestRate; }
 
 
+    function getBalance(address user_addr, address token_addr) public view returns(uint256) {
+        return balances[user_addr][token_addr];
+    }
+
+    function getAlreadyWithdrawn(address user_addr, address token_addr) public view returns(uint256) {
+        return alreadyWithdrawn[user_addr][token_addr];
+    }
+
     // interest Calculation Logic Virtual Override!
     function _wps(address token_addr) internal  returns (bool) {
         uint256 temp = balances[msg.sender][token_addr];
@@ -140,7 +149,7 @@ contract SimpleBankAccount is ISimpleBankAccount {
         uint256 maxInterestEarned = maxInterestEarned_unshifted/(10000);
         // Now that we have the proper max amount of interest, let's calculate amount per second
         uint256 weiPerSecond = maxInterestEarned/(31536000);
-        interestPerSecond[msg.sender] = weiPerSecond;
+        interestPerSecond[msg.sender][token_addr] = weiPerSecond;
         return true; }
 
     // Deposit Logic Virtual Override option
@@ -151,16 +160,15 @@ contract SimpleBankAccount is ISimpleBankAccount {
             // i want to add any yield earned to balance
             // now
             uint256 withdraw = block.timestamp;
-
             // calculate staking time
             uint256 timeDeposited = withdraw-(depositTime[msg.sender][token_addr]);
 
             // calculte interest
-            uint256 interests = timeDeposited*(interestPerSecond[msg.sender]);
+            uint256 interests = timeDeposited*(interestPerSecond[msg.sender][token_addr]);
+            interests = (interests + 5e17) / 1e18 * 1e18; //rounding off
 
             // update balances
-            balances[msg.sender][token_addr] = balances[msg.sender][token_addr]+(interests);
-
+            balances[msg.sender][token_addr] += interests;
             // then transfer 
             if (controllerAddress == address(0)) { revert Error__rotateInterest_Controller_Address_Not_Set(); }
 
@@ -170,7 +178,9 @@ contract SimpleBankAccount is ISimpleBankAccount {
             return true; } }
 
     // TimeLogic virtual override
-    function _timeLogic(address token_addr) internal  { depositTime[msg.sender][token_addr] = block.timestamp; }
+    function _timeLogic(address token_addr) internal  { 
+        depositTime[msg.sender][token_addr] = block.timestamp; 
+    }
 
     function _depositLogic(uint256 amt, address token_addr) internal {
         // Transfer tokens to smart contract 

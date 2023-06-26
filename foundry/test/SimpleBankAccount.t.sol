@@ -45,7 +45,7 @@ contract SimpleBankAccountTest is DSTest {
         token1.mint(address(this), 1000000 * 1e18); 
 
         SimpleBankAccountObj = new SimpleBankAccount(tokenAddressArray,tokenNameArray, address(this));
-        SimpleBankAccountObj.setInterestPercent(10);
+        SimpleBankAccountObj.setInterestPercent(1000); //10% bps points 1000
 
         VaultObj = new Vault(address(this));
 
@@ -107,14 +107,18 @@ contract SimpleBankAccountTest is DSTest {
         cheats.stopPrank();
         assertEq(token.balanceOf(address(addr2)), 980 ether);
         cheats.startPrank(address(addr1));
-        cheats.warp(365 days+1 minutes);
-        // withdraw 10 ether from  via addr1
-        SimpleBankAccountObj.withdrawTokens(10 ether, address(token));
-        SimpleBankAccountObj.withdrawTokens(10 ether, address(token1));
+        cheats.warp(365 days);
+        // withdraw 20 ether from  via addr1
+        emit log_uint(SimpleBankAccountObj.getBalance(address(addr1),address(token1)));
+
+        // 10 percent of 20 tokens 2 tokens interst 22 withdrawn
+        SimpleBankAccountObj.withdrawTokens(22 ether, address(token)); 
+        SimpleBankAccountObj.withdrawTokens(22 ether, address(token1));
         cheats.stopPrank();
         emit log_uint(token.balanceOf(address(addr2)));
-        assertEq(token.balanceOf(address(addr1)), 990 ether);
-        assertEq(token1.balanceOf(address(addr1)), 990 ether);
+        assertEq(token.balanceOf(address(addr1)), 1002 ether);
+        assertEq(token1.balanceOf(address(addr1)), 1002 ether);
+        emit log_uint(SimpleBankAccountObj.getBalance(address(addr1),address(token1)));
         // check balance to 30
         cheats.warp(10 days);
         // assertEq(token.balanceOf(address(SimpleBankAccountObj)), 1030 ether);
