@@ -12,7 +12,7 @@ The Architecture Elements:
 
 SimpleBankAccount: Allows a user to deposit, earn simple interest(without lockin) and withdraw the supported tokens.
 
-Controller: Acts as the controlling authority for deployment of multiple product/account vatiants i.e. SimpleBankAccount, CompoundBankAccount, CompoundLockingPeriodAccount, and handles interest earned transfer from Vault.
+Controller: Acts as the controlling authority for deployment of multiple product/account variants i.e. SimpleBankAccount, CompoundBankAccount, CompoundLockingPeriodAccount, and handles interest earned transfer from Vault.
 
 Vault: Holds the interest rate to be transferred from bank to the Account contract.
 
