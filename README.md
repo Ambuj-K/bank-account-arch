@@ -10,7 +10,7 @@ npm i @openzeppelin/contracts
 
 The Architecture Elements:
 
-SimpleBankAccount: Allows a user to deposit, earn simple interest(without lockin) and withdraw the supported tokens.
+SimpleBankAccount: Allows a user to deposit, earn simple interest (without lockin) for the time period tokens are held in the account contract, and withdraw the supported tokens.
 
 Controller: Acts as the controlling authority for deployment of multiple product/account variants i.e. SimpleBankAccount, CompoundBankAccount, CompoundLockingPeriodAccount, and handles interest earned transfer from Vault.
 
