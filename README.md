@@ -16,6 +16,8 @@ Controller: Acts as the controlling authority for deployment of multiple product
 
 Vault: Holds the interest rate to be transferred from bank to the Account contract.
 
+Adding testcases, enhanced.
+
 # Running testcases 
 
 Unit Testcases For SimpleBankAccount Product
