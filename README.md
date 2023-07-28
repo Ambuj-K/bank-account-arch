@@ -20,7 +20,6 @@ Vault: Holds the interest rate to be transferred from bank to the Account contra
 
 Unit Testcases For SimpleBankAccount Product
 
-
 ```shell
 # Simple Bank Account
 forge test --match-path test/SimpleBankAccount.t.sol -vvvvv
